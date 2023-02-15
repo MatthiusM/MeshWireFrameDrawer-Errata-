@@ -10,8 +10,11 @@ const TGAColor green = TGAColor(0, 255, 0, 255);
 const int width = 1080;
 const int height = 1080;
 
-TGAColor RandomColour() {
-	return TGAColor(rand() % 256, rand() % 256, rand() % 256, 255);;
+Model* model = nullptr;
+
+TGAColor RandomColour(float i) {
+	float b = i * (rand() % 256);
+	return TGAColor(b, b, b, 255);
 }
 
 void line(Vec2i p0, Vec2i p1, TGAImage& image, TGAColor color) {
@@ -37,7 +40,7 @@ void line(Vec2i p0, Vec2i p1, TGAImage& image, TGAColor color) {
 	}
 }
 
-void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color) {
+void triangleOld(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color) {
 	if (t0.y == t1.y && t0.y == t2.y) { return; }
 
 	if (t0.y > t1.y) { std::swap(t0, t1); }
@@ -79,16 +82,39 @@ void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color) {
 	line(t2, t0, image, color);
 }
 
+void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color) {
+	
+}
+
 int main(int argc, char** argv) {
 	TGAImage image(width, height, TGAImage::RGB);
 
-	Vec2i t0[3] = { Vec2i(650, 1000),   Vec2i(530, 1066),  Vec2i(968, 901) };
-	Vec2i t1[3] = { Vec2i(90, 680),  Vec2i(42, 750),   Vec2i(895, 627) };
-	Vec2i t2[3] = { Vec2i(360, 380), Vec2i(1050, 160), Vec2i(1079, 256) };
+	if (2 == argc) {
+		model = new Model(argv[1]);
+	}
+	else {
+		model = new Model("cc.obj");
+	}
 
-	triangle(t0[0], t0[1], t0[2], image, red);
-	triangle(t1[0], t1[1], t1[2], image, white);
-	triangle(t2[0], t2[1], t2[2], image, green);
+	Vec3f lightDir = Vec3f(0., 0., -1.);
+	for (int i = 0; i < model->nfaces(); i++) {
+		std::vector<int> face = model->face(i);
+		Vec2i screen_coords[3];
+		Vec3f world_cords[3];// = model->vert(face[j]);
+		for (int j = 0; j < 3; j++) {
+			Vec3f v = model->vert(face[j]);
+			screen_coords[j] = Vec2i((v.x + 1) * width / 2.,
+				(v.y + 1.) * height / 2.);
+			world_cords[j] = v;
+		}
+
+		Vec3f n = ((world_cords[2] - world_cords[0]) ^ (world_cords[1]-world_cords[0]));
+		n.normalize();
+
+		float intensity = n * lightDir;
+		triangleOld(screen_coords[0], screen_coords[1], screen_coords[2], image, RandomColour(intensity));
+	}
+	
 
 	image.flip_vertically(); // Origin at the left bottom corner of the image
 	image.write_tga_file("output.tga");
