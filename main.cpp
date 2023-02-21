@@ -77,9 +77,9 @@ void triangleOld(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color) 
 		//image.set(b.x, y, green);
 		//image.set(a.x, y, red);
 	}
-	line(t0, t1, image, color);
+	/*line(t0, t1, image, color);
 	line(t1, t2, image, color);
-	line(t2, t0, image, color);
+	line(t2, t0, image, color);*/
 }
 
 void triangle(Vec2i t0, Vec2i t1, Vec2i t2, TGAImage& image, TGAColor color) {
